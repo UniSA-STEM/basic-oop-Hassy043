@@ -1,0 +1,64 @@
+"""
+File: tests.py
+Description: Unit test suite for the "Into the Grid" simulation.
+             Validates class behaviour for Hacker, Rig, and Asset using Python's unittest module.
+Author: Seyedvahid Hashemian
+ID:  110426111
+Username: Hassy043
+This is my own work as defined by the University's Academic Misconduct Policy.
+"""
+
+import unittest
+from Hacker import Hacker
+from Rig import Rig
+from Asset import Asset
+
+
+class TestIntoTheGrid(unittest.TestCase):
+
+    def test_acquire_rig(self):
+        hacker = Hacker("Cipher")
+        self.assertTrue(hacker.acquire_rig())
+        self.assertIsInstance(hacker.rig, Rig)
+        self.assertFalse(any(a.name == "CryptoToken" for a in hacker.inventory))
+
+    def test_rig_upgrade(self):
+        hacker = Hacker("Neo")
+        hacker.acquire_rig()
+        hacker.inventory.append(Asset.hardware_patch())
+        self.assertTrue(hacker.upgrade_rig())
+        self.assertEqual(hacker.rig.upgrade_level, 1)
+
+    def test_encryption_cycle(self):
+        hacker = Hacker("Echo")
+        hacker.inventory.append(Asset("Prototype", "Test asset"))
+        hacker.inventory.append(Asset.security_chip())
+
+        self.assertTrue(hacker.encrypt_asset("inventory", "Prototype"))
+        # Find the Prototype in inventory and assert it's encrypted
+        proto = next(a for a in hacker.inventory if a.name == "Prototype")
+        self.assertTrue(proto.encrypted)
+
+        # Decrypt
+        hacker.inventory.append(Asset.security_chip())
+        self.assertTrue(hacker.decrypt_asset("inventory", "Prototype"))
+        proto = next(a for a in hacker.inventory if a.name == "Prototype")
+        self.assertFalse(proto.encrypted)
+
+    def test_trace_limit_block(self):
+        hacker = Hacker("Nova")
+        hacker.trace_level = 6
+        target = Hacker("Target")
+        self.assertFalse(hacker.launch_data_spike(target))
+
+    def test_rig_break_and_repair(self):
+        rig = Rig("Phantom")
+        rig.take_hit()
+        rig.take_hit()
+        self.assertTrue(rig.broken)
+        rig.repair(Asset.crypto_token())
+        self.assertFalse(rig.broken)
+
+
+if __name__ == "__main__":
+    unittest.main()
